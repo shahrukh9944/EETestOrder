@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="<%= csrfToken %>">
+  <title>Order Management Dashboard</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>Order Management</h1>
+    <form method="post" action="/logout" class="topbar-user">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <span class="muted">Signed in as <strong><%= user.name %></strong></span>
+      <button type="submit" class="btn btn-ghost">Sign out</button>
+    </form>
+  </header>
+
+  <main class="layout">
+    <!-- LEFT: the four actions + result -->
+    <section class="main-col" aria-label="Order actions">
+      <div class="actions">
+        <article class="card">
+          <h2>Create Order</h2>
+          <p class="muted">Creates test orders using SKUs: <%= skus.join(', ') %>.</p>
+          <div class="row">
+            <label for="order-count" class="sr-only">Number of orders</label>
+            <input id="order-count" type="number" min="1" max="<%= maxOrders %>" value="1" inputmode="numeric" aria-label="Number of orders">
+            <button class="btn btn-primary action-btn" data-action="create" type="button">Create Order</button>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>Shipped Order</h2>
+          <p class="muted">Generates manifests for orders that are ready to ship.</p>
+          <button class="btn btn-primary action-btn" data-action="ship" data-confirm="Generate manifests for all ready orders?" type="button">Shipped Order</button>
+        </article>
+
+        <article class="card">
+          <h2>Cancel Order</h2>
+          <p class="muted">Cancels an order by its order number. Leave blank to cancel the latest order created here.</p>
+          <div class="row">
+            <label for="cancel-ref" class="sr-only">Order number</label>
+            <input id="cancel-ref" class="wide" type="text" maxlength="64" placeholder="Order number" autocomplete="off" aria-label="Order number (reference code)">
+            <button class="btn btn-danger action-btn" data-action="cancel" data-confirm="Cancel this order?" type="button">Cancel Order</button>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>Return Order</h2>
+          <p class="muted">Marks returned orders from the last few days as returned.</p>
+          <button class="btn btn-primary action-btn" data-action="return" data-confirm="Mark returned orders in the date window as returned?" type="button">Return Order</button>
+        </article>
+      </div>
+
+      <section class="card result" aria-live="polite" aria-label="Result">
+        <div class="result-head">
+          <h2>Result</h2>
+          <span id="spinner" class="spinner" hidden aria-label="Loading"></span>
+        </div>
+        <div id="banner" class="banner" hidden role="status"></div>
+        <pre id="output" class="output" hidden></pre>
+        <p id="placeholder" class="muted">Run an action to see the API response here.</p>
+      </section>
+    </section>
+
+    <!-- RIGHT: separate authentication panel -->
+    <aside class="auth-panel card" id="auth-panel" aria-label="Authentication"
+           data-state="<%= auth.state %>"
+           data-expires-at="<%= auth.expiresAt || '' %>">
+      <h2>Authentication</h2>
+      <p>
+        <span id="auth-badge" class="badge <%= auth.authenticated ? 'badge-ok' : 'badge-bad' %>">
+          <%= auth.authenticated ? 'Authenticated' : 'Not authenticated' %>
+        </span>
+      </p>
+      <p id="auth-expiry" class="muted"></p>
+      <p id="auth-token-hint" class="muted mono"><%= auth.tokenHint %></p>
+
+      <div id="auth-message" class="banner <%= auth.authenticated ? 'banner-ok' : 'banner-error' %>" role="status"><%= auth.message %></div>
+
+      <form id="token-form" autocomplete="off">
+        <fieldset id="token-fieldset" <%= auth.authenticated ? 'disabled' : '' %>>
+          <label for="token-input">New JWT</label>
+          <textarea id="token-input" rows="6" spellcheck="false" autocomplete="off" placeholder="Paste a new JWT here"></textarea>
+          <button id="token-submit" type="submit" class="btn btn-primary btn-block">Update Token</button>
+        </fieldset>
+      </form>
+      <p class="muted small">The input unlocks automatically when the token expires or the API rejects it (401). The token is stored on the server only.</p>
+    </aside>
+  </main>
+
+  <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
